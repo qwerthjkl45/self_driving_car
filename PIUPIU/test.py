@@ -5,7 +5,10 @@ import carla
 import random
 import time
 
+
 def main():
+
+    print("CHUCHU")
 
     actor_list = []
 
