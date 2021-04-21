@@ -1,0 +1,15 @@
+{
+    "intrinsics": {
+      "fov": 90.0,
+      "image_size_x": 800,
+      "image_size_y": 600,
+      "enable_postprocess_effects": "True",
+      "sensor_tick": 0.0
+    },
+    "x": 2,
+    "y": 0,
+    "z": 1,
+    "pitch": 0,
+    "yaw": 0,
+    "roll": 0
+}
