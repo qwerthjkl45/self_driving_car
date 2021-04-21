@@ -5,6 +5,7 @@ import os
 import random
 import sys
 import time
+import weakref
 
 from abc import ABCMeta, abstractmethod
      
@@ -46,6 +47,11 @@ class Tesla():
         print(path)
         image.save_to_disk(path)
 
+    def start_listener(self, camera_name):
+
+        #weak_ref = weakref(camera_name)
+        self.cameras[camera_name].listen(lambda image: image.save_to_disk('./outputs/' + camera_name + '%.6d.jpg' % image.frame_number))
+
     def init_cameras(self):
 
         for camera_name, camera_config in self.camera_configs.items():
@@ -62,11 +68,13 @@ class Tesla():
             cam_transform = carla.Transform(cam_location, cam_rotation) 
             
             self.cameras[camera_name] = self.world.spawn_actor(cam_bp, cam_transform, attach_to=self.actor)
+            self.start_listener(camera_name)
+
             #self.cameras[camera_name].listen(lambda image: image.save_to_disk('./outputs/' + camera_name + '%.6d.jpg' % image.frame_number))
-            if camera_name == "front_camera":
-                self.cameras[camera_name].listen(lambda image: self.save_image(image, './outputs/' + "front + '1.jpg'))
-            else:
-                self.cameras[camera_name].listen(lambda image: self.save_image(image, './outputs/' + "back" + '1.jpg'))
+            
+            #    self.cameras[camera_name].listen(lambda image: self.save_image(image, './outputs/' + "front + '1.jpg'))
+            #else:
+            #    self.cameras[camera_name].listen(lambda image: self.save_image(image, './outputs/' + "back" + '1.jpg'))
 
 
         print(self.cameras)
