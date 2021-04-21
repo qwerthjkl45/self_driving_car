@@ -25,8 +25,9 @@ class Tesla():
         self.bp = random.choice(blueprint_library.filter('tesla'))
 
         self.camera_configs = {
-            "front_camera": self.load_config(os.path.join("sensors", "camera", "front_camera.json")),
-            "rear_camera": self.load_config(os.path.join("sensors", "camera", "rear_camera.json"))
+            "front_camera": ['sensor.camera.rgb', self.load_config(os.path.join("sensors", "camera", "front_camera.json"))],
+            "rear_camera": [ 'sensor.camera.rgb', self.load_config(os.path.join("sensors", "camera", "rear_camera.json"))],
+            "front_seg_camera": ['sensor.camera.semantic_segmentation', self.load_config(os.path.join("sensors", "camera", "front_seg_camera.json"))]
         }
 
         self.init_car()
@@ -46,20 +47,25 @@ class Tesla():
     def save_image(self, image, path):
         print(path)
         image.save_to_disk(path)
+        
 
     def start_listener(self, camera_name):
 
         #weak_ref = weakref(camera_name)
         self.cameras[camera_name].listen(lambda image: image.save_to_disk('./outputs/' + camera_name + '%.6d.jpg' % image.frame_number))
-
+        
     def init_cameras(self):
-
-        for camera_name, camera_config in self.camera_configs.items():
-            cam_bp = self.world.get_blueprint_library().find('sensor.camera.rgb')
+    
+        print('====init cameras ====')
+        
+        for camera_name, camera_configs in self.camera_configs.items():
+            camera_type = camera_configs[0]
+            camera_config = camera_configs[1]
+            cam_bp = self.world.get_blueprint_library().find(camera_type)
 
             for attr_name, attr_value in camera_config['intrinsics'].items():
                 cam_bp.set_attribute(attr_name, str(attr_value))
-            
+                
             location = (camera_config["x"], camera_config["y"], camera_config["z"])
             rotation = (camera_config["pitch"], camera_config["yaw"], camera_config["roll"])
             
@@ -70,14 +76,6 @@ class Tesla():
             self.cameras[camera_name] = self.world.spawn_actor(cam_bp, cam_transform, attach_to=self.actor)
             self.start_listener(camera_name)
 
-            #self.cameras[camera_name].listen(lambda image: image.save_to_disk('./outputs/' + camera_name + '%.6d.jpg' % image.frame_number))
-            
-            #    self.cameras[camera_name].listen(lambda image: self.save_image(image, './outputs/' + "front + '1.jpg'))
-            #else:
-            #    self.cameras[camera_name].listen(lambda image: self.save_image(image, './outputs/' + "back" + '1.jpg'))
-
-
-        print(self.cameras)
 
     def init_gnss(self):
         pass
@@ -100,7 +98,7 @@ def main():
     # to the simulator. Here we'll assume the simulator is accepting
     # requests in the localhost at port 2000.
     client = carla.Client('localhost', 2000)
-    client.set_timeout(2.0)
+    client.set_timeout(100.0)
 
     # Once we have a client we can retrieve the world that is currently
     # running.
